@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Ticket Booking</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .navbar { 
+            background: #f8f8f8; 
+            padding: 15px; 
+        }
+        .navbar a { 
+            margin: 0 15px; 
+            text-decoration: none; 
+            color: black; 
+            font-weight: bold; 
+        }
+        .banner { 
+            height: 250px; 
+            background: url('background.jpeg') center/cover no-repeat;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            color: white;
+        }
+        .search-box { 
+            background: white; 
+            padding: 20px; 
+            width: 80%; 
+            margin: auto; 
+            border-radius: 5px; 
+        }
+        .search-box select, .search-box input, .search-box button { 
+            padding: 10px; 
+            margin: 5px; 
+        }
+        .search-box select, .search-box input { 
+            width: 20%; 
+        }
+        .search-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: orange;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .footer { 
+            padding: 15px; 
+            background: #f8f8f8; 
+            margin-top: 20px; 
+        }
+        .chatbot-link { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            background: blue; 
+            color: white; 
+            padding: 10px 15px; 
+            border-radius: 5px; 
+            text-decoration: none; 
+            z-index: 1000;
+        }
+        #chatbotModal {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
+            z-index: 1001;
+        }
+        #chatbotModal .modal-header {
+            background: blue;
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #chatMessages {
+            height: 250px;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f9f9f9;
+        }
+        #chatbotModal .modal-footer {
+            padding: 15px;
+            border-top: 1px solid #ddd;
+        }
+        #voiceButton {
+            padding: 10px 15px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        #listeningIndicator {
+            display: none;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo" style="padding: 15px;">
+        <img src="logo.png" alt="Logo" width="100"> 
+    </div>
+    
+    <div class="navbar">
+        <a href="payment.html">Refund</a>
+    </div>
+    
+    <div class="banner">
+        <h2>Train Ticket Booking</h2>
+    </div>
+    
+    <div class="search-box">
+        <select id="from">
+            <option>Demo Place A</option>
+            <option>Demo Place B</option>
+        </select>
+        <select id="to">
+            <option>Demo Place X</option>
+            <option>Demo Place Y</option>
+        </select>
+        <input type="date">
+        <select>
+            <option>1 Traveller</option>
+            <option>2 Travellers</option>
+        </select>
+        <a href="selecttrains.html" class="search-btn">Search</a>
+    </div>
+    
+    <a href="#" class="chatbot-link" onclick="openChatbot()">Chat with Us</a>
+    
+    <div id="chatbotModal">
+        <div class="modal-header">
+            <h3 style="margin:0;">Voice Assistant</h3>
+            <div>
+                <span id="listeningIndicator">🎤 Listening...</span>
+                <button onclick="closeChatbot()" style="background:none; border:none; color:white; cursor:pointer; font-size:1.2em;">✕</button>
+            </div>
+        </div>
+        <div id="chatMessages"></div>
+        <div class="modal-footer">
+            <button id="voiceButton" onclick="toggleVoiceInput()">🎤 Press to Speak</button>
+            <div style="display:flex;">
+                <input type="text" id="userMessage" placeholder="Or type here..." style="flex:1; padding:10px; border:1px solid #ddd; border-radius:5px; margin-right:10px;">
+                <button onclick="sendTextMessage()" style="padding:10px 15px; background:blue; color:white; border:none; border-radius:5px; cursor:pointer;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 Train Ticket Booking</p>
+    </div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+
+        function openChatbot() {
+            document.getElementById('chatbotModal').style.display = 'block';
+        }
+
+        function closeChatbot() {
+            document.getElementById('chatbotModal').style.display = 'none';
+            if (recognition) {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('listeningIndicator').style.display = 'none';
+            }
+        }
+
+        function appendMessage(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `${sender}: ${message}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendTextMessage() {
+            const userMessage = document.getElementById('userMessage').value;
+            if (userMessage.trim() !== '') {
+                appendMessage('You', userMessage);
+                // Simulate chatbot response (replace with actual logic)
+                setTimeout(() => {
+                    appendMessage('Chatbot', 'Received: ' + userMessage);
+                }, 500);
+                document.getElementById('userMessage').value = '';
+            }
+        }
+
+        function toggleVoiceInput() {
+            if (!recognition) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.lang = 'en-US';
+                recognition.interimResults = false;
+            }
+
+            if (!isListening) {
+                recognition.start();
+                isListening = true;
+                document.getElementById('listeningIndicator').style.display = 'inline';
+                document.getElementById('voiceButton').textContent = '🎤 Stop Listening';
+
+                recognition.onresult = (event) => {
+                    const speechResult = event.results[0][0].transcript;
+                    document.getElementById('userMessage').value = speechResult;
+                    sendTextMessage();
+                };
+
+                recognition.onend = () => {
+                    isListening = false;
+                    document.getElementById('listeningIndicator').style.display = 'none';
+                    document.getElementById('voiceButton').textContent = '🎤 Press to Speak';
+                };
+            } else {
+                recognition.stop();
+                isListening = false;
+                document.getElementById('listeningIndicator').style.display = 'none';
+                document.getElementById('voiceButton').textContent = '🎤 Press to Speak';
+            }
+        }
+    </script>
+</body>
+</html>
